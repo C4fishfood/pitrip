@@ -35,7 +35,7 @@ def button_enter(channel):
        ntripstatus = 1
        f= open("ntripstatus.txt","w+")
        f.write("NTRIP Running")
-       cmd = '/home/pi/pitrip/ntripclient -s SERVER -r PORT -u USER -p PASSWORD -m MOUNTPOINT -D /dev/ttyUSB0 -B 115200 &'
+       cmd = '/home/pi/pitrip/ntripclient -s SERVER -r PORT -u USER -p PASSWORD -m "{}" -D /dev/ttyUSB0 -B 115200 &'.format(mountpnt)
        proc=subprocess.call(cmd, shell=True)
        print("NTRIP STARTED")
     else:
