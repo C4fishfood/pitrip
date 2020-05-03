@@ -6,8 +6,8 @@ from PIL import Image, ImageDraw, ImageFont
 import adafruit_rgb_display.st7789 as st7789
 import RPi.GPIO as GPIO # Import Raspberry Pi GPIO library
 STline = 10
-ntripstatus = 0
-mountpnt = 'P229_RCTM3'
+ntripstatus = 'NTRIP OFF'
+mountpnt = 'NO MOUNTPNT'
 
 # Configuration for CS and DC pins (these are FeatherWing defaults on M0/M4):
 cs_pin = digitalio.DigitalInOut(board.CE0)
@@ -67,24 +67,20 @@ def button_up(channel):
         global ntripstatus
         global STline
         global mountpnt
-        if(ntripstatus == 0):
+        if(ntripstatus == 'NTRIP OFF'):
                 STline += 1
                 cmd = 'sed -n -e "{}"p '.format(STline)
                 mountpnt = subprocess.check_output(cmd+'/home/pi/ntrip/source_table.txt', shell=True).rstrip().decode("utf-8")
                 print(mountpnt)
-                f= open("mountpnt.txt","w+")
-                f.write(mountpnt)
 def button_down(channe1):
         global ntripstatus
         global STline
         global mountpnt
-        if(ntripstatus == 0):
+        if(ntripstatus == 'NTRIP OFF'):
                 STline -= 1
                 cmd = 'sed -n -e "{}"p '.format(STline)
                 mountpnt = subprocess.check_output(cmd+'/home/pi/ntrip/source_table.txt', shell=True).rstrip().decode("utf-8")
                 print(mountpnt)
-                f= open("mountpnt.txt","w+")
-                f.write(mountpnt)
 def button_enter(channel):
         global ntripstatus
         global mountpnt
@@ -95,10 +91,8 @@ def button_enter(channel):
                         print("SHUTDOWN")
                         cmd = 'sudo shutdown -h now'
                         proc = subprocess.call(cmd, shell=True)
-        elif(ntripstatus == 0):
-                ntripstatus = 1
-                f= open("ntripstatus.txt","w+")
-                f.write("NTRIP Running")
+        elif(ntripstatus == 'NTRIP OFF'):
+                ntripstatus = 'NTRIP ON'
                 cmd = "/home/pi/ntrip/ntripclient -s XXX -r XXX -u XXX -p XXX -m {} -D /dev/ttyUSB0 -B 115200 &".format(mountpnt)
                 proc=subprocess.call(cmd, shell=True)
                 print(cmd)
@@ -109,9 +103,7 @@ def button_enter(channel):
                 proc = subprocess.check_output(cmd+ntripPID, shell=True).decode("utf-8")
                 print(ntripPID)
                 print(proc)
-                ntripstatus = 0
-                f= open("ntripstatus.txt","w+")
-                f.write("NTRIP DOWN")
+                ntripstatus = 'NTRIP OFF'
 
 GPIO.setwarnings(False) # Ignore warning for now
 GPIO.setmode(GPIO.BCM) # Use BCM (chip) or BOARD (physical) pin numbering
@@ -157,7 +149,7 @@ while True:
     # Write lines of text.
         y = top
         draw.text((x, y), IP, font=font, fill="#FFFFFF")
-#    draw.text((x+100, y), ntripstatus, font=font, fill="#FFFFFF")
+        draw.text((x+100, y), ntripstatus, font=font, fill="#FFFFFF")
         y += font.getsize(IP)[1]
         draw.text((x, y), mountpnt, font=font, fill="#FFFFFF")
         draw.text((x+180, y), DIFFAGE3, font=font, fill="#FFFFFF")
